@@ -1,4 +1,8 @@
 # cryptonomicon
+```
+HI, this is my first project on VUE
+```
+
 
 ## Project setup
 ```
