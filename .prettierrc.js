@@ -3,5 +3,5 @@ module.exports = {
   singleQuote: true,
   tabWidth: 2,
   quoteProps: "consistent",
-  endOfLine: "lf"
+  endOfLine: "auto"
 };
