@@ -174,7 +174,11 @@
 </template>
 
 <script>
-import { subscribeToTicker, unsubscribeFromTicker } from './api.js';
+import {
+  subscribeToTicker,
+  unsubscribeFromTicker,
+  getCoinlist,
+} from './api.js';
 
 export default {
   name: 'App',
@@ -225,12 +229,7 @@ export default {
       });
     }
 
-    setInterval(this.updateTickers, 5000);
-
-    const f = await fetch(
-      `https://min-api.cryptocompare.com/data/all/coinlist?summary=true&api_key=8db07ad7d2ab9aa2239cce639d7af4b900b7a5e8c5fe2954f4429841192995d7`
-    );
-    const coinlistData = await f.json();
+    const coinlistData = await getCoinlist();
 
     for (let n in coinlistData.Data) {
       this.coinlist.push(n);
