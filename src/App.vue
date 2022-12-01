@@ -95,8 +95,10 @@
             @click="select(t)"
             :class="{
               'border-4': selectedTicker === t,
+              'bg-white': t.work,
+              'bg-red-100': !t.work,
             }"
-            class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
+            class="overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
@@ -178,6 +180,7 @@ import {
   subscribeToTicker,
   unsubscribeFromTicker,
   getCoinlist,
+  getInvalidSubsList,
 } from './api.js';
 
 export default {
@@ -217,7 +220,6 @@ export default {
     // if (windowData.page) {
     //   this.page = windowData.page;
     // }
-
     const tickersData = localStorage.getItem('cryptonomicon-list');
 
     if (tickersData) {
@@ -281,7 +283,21 @@ export default {
   },
 
   methods: {
+    filteredInvalidTickers() {
+      const invalidSubsList = getInvalidSubsList();
+      for (let n of invalidSubsList) {
+        for (let t of this.tickers) {
+          if (t.name === n) {
+            t.work = false;
+            break;
+          }
+        }
+      }
+    },
+
     updateTicker(tickerName, price) {
+      this.filteredInvalidTickers();
+
       this.tickers
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
@@ -317,6 +333,7 @@ export default {
       const currentTicker = {
         name: this.ticker.toUpperCase(),
         price: '-',
+        work: true,
       };
 
       this.tickers = [...this.tickers, currentTicker];
@@ -387,7 +404,6 @@ export default {
       );
     },
   },
-  // console.log( )
 };
 </script>
 
