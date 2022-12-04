@@ -86,6 +86,7 @@ export const unsubscribeFromTicker = (ticker) => {
 };
 
 export const getCoinlist = () =>
+  // дз, метод then выполняет функцию на пришедшие данные от метода fetch
   fetch(
     `https://min-api.cryptocompare.com/data/all/coinlist?summary=true&api_key=${API_KEY}`
   ).then((result) => result.json());

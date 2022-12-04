@@ -11,7 +11,7 @@
             <div class="mt-1 relative rounded-md shadow-md">
               <input
                 v-model="ticker"
-                @input="inputValidation"
+                @input="inputValidation()"
                 @keydown.enter="add"
                 type="text"
                 name="wallet"
@@ -192,12 +192,11 @@ export default {
       filter: '',
 
       tickers: [],
-
       coinlist: [],
+      selectedTicker: null,
 
       graph: [],
       page: 1,
-      selectedTicker: null,
     };
   },
 
@@ -233,6 +232,7 @@ export default {
     }
 
     const coinlistData = await getCoinlist();
+    // поправить это исходя из ролика, но вначале досмотри до вебсокетов
 
     for (let n in coinlistData.Data) {
       this.coinlist.push(n);
@@ -286,6 +286,9 @@ export default {
     },
 
     pageStateOptions() {
+      // если меняется пайдж или фильтр, то функция начинает считать
+      // console.log(this.page);
+      // это наводит на мысль что нужно обновлять список ошибочных тикеров с помощью метода компьютер
       return {
         filter: this.filter,
         page: this.page,
@@ -361,6 +364,7 @@ export default {
 
     inputValidation() {
       // дз, подскажет 4 из списока монеток по начальному вводу
+      // выдает ошибку если вставить в компутед
       if (!this.ticker) {
         return false;
       }
