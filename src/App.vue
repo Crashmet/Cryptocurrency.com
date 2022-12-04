@@ -20,12 +20,12 @@
                 placeholder="Например DOGE"
               />
             </div>
-            <template v-if="nameHint.length">
+            <template v-if="inputValidation().length">
               <div
                 class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
               >
                 <span
-                  v-for="n of nameHint"
+                  v-for="n of inputValidation()"
                   :key="n"
                   @click="handleAddTicker(n)"
                   class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
@@ -34,7 +34,7 @@
                 </span>
               </div>
             </template>
-            <div v-if="flagTicker" class="text-sm text-red-600">
+            <div v-if="checkInput" class="text-sm text-red-600">
               Такой тикер уже добавлен
             </div>
           </div>
@@ -190,13 +190,14 @@ export default {
     return {
       ticker: '',
       filter: '',
+
       tickers: [],
+
       coinlist: [],
-      nameHint: [],
+
       graph: [],
-      selectedTicker: null,
-      flagTicker: false,
       page: 1,
+      selectedTicker: null,
     };
   },
 
@@ -239,6 +240,16 @@ export default {
   },
 
   computed: {
+    checkInput() {
+      let flagTicker = false;
+      for (let t of this.tickers) {
+        if (this.ticker.toUpperCase() == t.name) {
+          return (flagTicker = true);
+        }
+      }
+      return flagTicker;
+    },
+
     startIndex() {
       return (this.page - 1) * 6;
     },
@@ -315,18 +326,8 @@ export default {
       return price > 1 ? price.toFixed(2) : price.toPrecision(2);
     },
 
-    checkInput() {
-      for (let t of this.tickers) {
-        this.flagTicker = false;
-        if (this.ticker.toUpperCase() == t.name) {
-          return (this.flagTicker = true);
-        }
-      }
-    },
-
     add() {
-      this.checkInput();
-      if (this.flagTicker == true) {
+      if (this.checkInput) {
         return;
       }
 
@@ -359,21 +360,20 @@ export default {
     },
 
     inputValidation() {
-      this.checkInput();
+      // дз, подскажет 4 из списока монеток по начальному вводу
+      if (!this.ticker) {
+        return false;
+      }
 
-      this.nameHint = [];
-
-      this.nameHint = this.coinlist.filter((item) =>
+      const nameHint = this.coinlist.filter((item) =>
         item.startsWith(this.ticker.toUpperCase())
       );
 
-      this.nameHint = this.nameHint.filter((item, idx) => idx < 4);
+      return nameHint.filter((item, idx) => idx < 4);
     },
 
     handleAddTicker(nameTickerToAdd) {
       this.ticker = nameTickerToAdd;
-
-      this.checkInput();
     },
   },
 
@@ -397,6 +397,7 @@ export default {
     },
 
     pageStateOptions(value) {
+      // конец 16го видео
       window.history.pushState(
         null,
         document.title,
