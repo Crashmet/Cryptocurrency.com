@@ -11,6 +11,7 @@ const AGGREGATE_INDEX = '5';
 const INVALID_SUB = 'INVALID_SUB';
 
 socket.addEventListener('message', (e) => {
+  // когда придут сообщения
   const {
     TYPE: type,
     FROMSYMBOL: currency,
@@ -32,15 +33,19 @@ socket.addEventListener('message', (e) => {
   if (type !== AGGREGATE_INDEX || newPrice === undefined) {
     return;
   }
-
+  // console.log(currency);
+  // console.log(newPrice);
+  // console.log(tickersHandlers);
   const handlers = tickersHandlers.get(currency) ?? [];
-
+  // console.log(handlers, currency);
   handlers.forEach((fn) => {
     fn(newPrice);
   });
 });
 
 function sendToWebSocket(message) {
+  // если сокет открыт(опен), и отправить сообщение вебсокету, если сокет закрыт, дождаться и отправить
+
   const stringifiedMessage = JSON.stringify(message);
 
   if (socket.readyState === WebSocket.OPEN) {
@@ -71,9 +76,13 @@ function unsubscribeFromTickerOnWs(ticker) {
   });
 }
 
+// cb - добавление функции к тикеру которые будут вызываться
 export const subscribeToTicker = (ticker, cb) => {
+  // когда обновиться определенный тикер, вызови функцию солбэк
   const subscribers = tickersHandlers.get(ticker) || [];
+  // subscribers - вытягиваем всех тех кто подписан на этот тикер; когда я подписываюсь на опрееделенный тикер, вызывай мне определенную функцию
   tickersHandlers.set(ticker, [...subscribers, cb]);
+  // ...subscribers список функций я на который я был раньше подписан и сb новая функция
   subscribeToTickerOnWs(ticker);
 };
 
@@ -90,6 +99,7 @@ export const getCoinlist = () =>
   fetch(
     `https://min-api.cryptocompare.com/data/all/coinlist?summary=true&api_key=${API_KEY}`
   ).then((result) => result.json());
+// https://doka.guide/js/promise/#cepochki-metodov
 
 export const getInvalidSubsList = () => {
   return invalidSubsList;

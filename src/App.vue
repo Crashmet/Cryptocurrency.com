@@ -200,7 +200,7 @@ export default {
     };
   },
 
-  async created() {
+  created() {
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
     );
@@ -224,6 +224,7 @@ export default {
 
     if (tickersData) {
       this.tickers = JSON.parse(tickersData);
+      // для каждого тикера мы делаем функцию (58мин. 107мин)
       this.tickers.forEach((ticker) => {
         subscribeToTicker(ticker.name, (newPrice) =>
           this.updateTicker(ticker.name, newPrice)
@@ -231,12 +232,14 @@ export default {
       });
     }
 
-    const coinlistData = await getCoinlist();
-    // поправить это исходя из ролика, но вначале досмотри до вебсокетов
+    setImmediate(async () => {
+      const coinlistData = await getCoinlist();
+      // поправить это исходя из ролика, но вначале досмотри до вебсокетов
 
-    for (let n in coinlistData.Data) {
-      this.coinlist.push(n);
-    }
+      for (let n in coinlistData.Data) {
+        this.coinlist.push(n);
+      }
+    });
   },
 
   computed: {
