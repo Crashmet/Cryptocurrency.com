@@ -95,8 +95,8 @@
             @click="select(t)"
             :class="{
               'border-4': selectedTicker === t,
-              'bg-white': t.work,
-              'bg-red-100': !t.work,
+              'bg-white': t.status,
+              'bg-red-100': !t.status,
             }"
             class="overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
@@ -179,8 +179,9 @@
 import {
   subscribeToTicker,
   unsubscribeFromTicker,
+  subscribeToStatusTicker,
+  unsubscribeFromStatusTicker,
   getCoinlist,
-  getInvalidSubsList,
 } from './api.js';
 
 export default {
@@ -228,6 +229,12 @@ export default {
       this.tickers.forEach((ticker) => {
         subscribeToTicker(ticker.name, (newPrice) =>
           this.updateTicker(ticker.name, newPrice)
+        );
+      });
+
+      this.tickers.forEach((ticker) => {
+        subscribeToStatusTicker(ticker.name, (newStatus) =>
+          this.updateStatusTicker(ticker.name, newStatus)
         );
       });
     }
@@ -300,21 +307,15 @@ export default {
   },
 
   methods: {
-    filteredInvalidTickers() {
-      const invalidSubsList = getInvalidSubsList();
-      for (let n of invalidSubsList) {
-        for (let t of this.tickers) {
-          if (t.name === n) {
-            t.work = false;
-            break;
-          }
-        }
-      }
+    updateStatusTicker(tickerName, newStatus) {
+      this.tickers
+        .filter((t) => t.name === tickerName)
+        .forEach((t) => {
+          t.status = newStatus;
+        });
     },
 
     updateTicker(tickerName, price) {
-      this.filteredInvalidTickers();
-
       this.tickers
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
@@ -340,14 +341,19 @@ export default {
       const currentTicker = {
         name: this.ticker.toUpperCase(),
         price: '-',
-        work: true,
+        status: true,
       };
 
       this.tickers = [...this.tickers, currentTicker];
       this.ticker = '';
       this.filter = '';
+
       subscribeToTicker(currentTicker.name, (newPrice) =>
         this.updateTicker(currentTicker.name, newPrice)
+      );
+
+      subscribeToStatusTicker(currentTicker.name, (newStatus) =>
+        this.updateStatusTicker(currentTicker.name, newStatus)
       );
     },
 
@@ -363,6 +369,7 @@ export default {
       }
 
       unsubscribeFromTicker(tickerToRemove.name);
+      unsubscribeFromStatusTicker(tickerToRemove.name);
     },
 
     inputValidation() {

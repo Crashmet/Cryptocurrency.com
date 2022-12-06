@@ -2,7 +2,8 @@ const API_KEY =
   '8db07ad7d2ab9aa2239cce639d7af4b900b7a5e8c5fe2954f4429841192995d7';
 
 const tickersHandlers = new Map();
-let invalidSubsList = [];
+const invalidSubsList = new Map();
+
 const socket = new WebSocket(
   `wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`
 );
@@ -11,33 +12,34 @@ const AGGREGATE_INDEX = '5';
 const INVALID_SUB = 'INVALID_SUB';
 
 socket.addEventListener('message', (e) => {
+  const { MESSAGE: message, PARAMETER: nameSubs } = JSON.parse(e.data);
+
+  if (message === INVALID_SUB) {
+    const currency = nameSubs
+      .split('~')
+      .filter((n, i) => i == 2)
+      .join('');
+
+    const handlers = invalidSubsList.get(currency);
+    handlers.forEach((fn) => {
+      fn(false);
+    });
+  }
+});
+
+socket.addEventListener('message', (e) => {
   // когда придут сообщения
   const {
     TYPE: type,
     FROMSYMBOL: currency,
     PRICE: newPrice,
-    PARAMETER: nameSubs,
-    MESSAGE: message,
   } = JSON.parse(e.data);
-
-  // console.log(invalidSubsList);
-  if (message === INVALID_SUB) {
-    invalidSubsList.push(
-      nameSubs
-        .split('~')
-        .filter((n, i) => i == 2)
-        .join('')
-    );
-  }
 
   if (type !== AGGREGATE_INDEX || newPrice === undefined) {
     return;
   }
-  // console.log(currency);
-  // console.log(newPrice);
-  // console.log(tickersHandlers);
+
   const handlers = tickersHandlers.get(currency) ?? [];
-  // console.log(handlers, currency);
   handlers.forEach((fn) => {
     fn(newPrice);
   });
@@ -80,6 +82,7 @@ function unsubscribeFromTickerOnWs(ticker) {
 export const subscribeToTicker = (ticker, cb) => {
   // когда обновиться определенный тикер, вызови функцию солбэк
   const subscribers = tickersHandlers.get(ticker) || [];
+
   // subscribers - вытягиваем всех тех кто подписан на этот тикер; когда я подписываюсь на опрееделенный тикер, вызывай мне определенную функцию
   tickersHandlers.set(ticker, [...subscribers, cb]);
   // ...subscribers список функций я на который я был раньше подписан и сb новая функция
@@ -89,9 +92,15 @@ export const subscribeToTicker = (ticker, cb) => {
 export const unsubscribeFromTicker = (ticker) => {
   tickersHandlers.delete(ticker);
   unsubscribeFromTickerOnWs(ticker);
-  let id = 0;
-  invalidSubsList.map((el, indx) => (el === ticker ? (id = indx) : el));
-  invalidSubsList.splice(id, 1);
+};
+
+export const subscribeToStatusTicker = (ticker, cb) => {
+  const subscribers = invalidSubsList.get(ticker) || [];
+  invalidSubsList.set(ticker, [...subscribers, cb]);
+};
+
+export const unsubscribeFromStatusTicker = (ticker) => {
+  invalidSubsList.delete(ticker);
 };
 
 export const getCoinlist = () =>
@@ -100,7 +109,3 @@ export const getCoinlist = () =>
     `https://min-api.cryptocompare.com/data/all/coinlist?summary=true&api_key=${API_KEY}`
   ).then((result) => result.json());
 // https://doka.guide/js/promise/#cepochki-metodov
-
-export const getInvalidSubsList = () => {
-  return invalidSubsList;
-};
