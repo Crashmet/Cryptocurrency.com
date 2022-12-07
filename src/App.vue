@@ -241,7 +241,6 @@ export default {
 
     setImmediate(async () => {
       const coinlistData = await getCoinlist();
-      // поправить это исходя из ролика, но вначале досмотри до вебсокетов
 
       for (let n in coinlistData.Data) {
         this.coinlist.push(n);
