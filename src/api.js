@@ -9,9 +9,9 @@ const bc = new BroadcastChannel('App');
 
 const tickersHandlers = new Map();
 const invalidSubsList = new Map();
-const prices = new Map();
-
 const AGGREGATE_INDEX = '5';
+
+const prices = new Map();
 const INVALID_SUB = 'INVALID_SUB';
 const BTC_SYMBOL = 'BTC';
 const USD_SYMBOL = 'USD';

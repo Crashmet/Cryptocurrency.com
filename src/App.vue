@@ -340,7 +340,7 @@ export default {
       const currentTicker = {
         name: this.ticker.toUpperCase(),
         price: '-',
-        status: true,
+        status: false,
       };
 
       this.tickers = [...this.tickers, currentTicker];
