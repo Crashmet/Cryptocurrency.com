@@ -5,6 +5,8 @@ const socket = new WebSocket(
   `wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`
 );
 
+const bc = new BroadcastChannel('App');
+
 const tickersHandlers = new Map();
 const invalidSubsList = new Map();
 const prices = new Map();
@@ -14,6 +16,74 @@ const INVALID_SUB = 'INVALID_SUB';
 const BTC_SYMBOL = 'BTC';
 const USD_SYMBOL = 'USD';
 let BTC_PRICE = 0;
+
+socket.addEventListener('message', (e) => {
+  const {
+    TYPE: type,
+    FROMSYMBOL: currency,
+    PRICE: newPrice,
+    TOSYMBOL: unit,
+    MESSAGE: message,
+    PARAMETER: nameSubs,
+  } = JSON.parse(e.data);
+
+  bc.postMessage(e.data);
+
+  checkingInvalidSubs(message, nameSubs);
+
+  if (type !== AGGREGATE_INDEX || newPrice === undefined) {
+    return;
+  }
+
+  addPricesList(unit, currency, newPrice);
+  updateBtcPrice(currency, newPrice);
+  recalculateTickers();
+  setStatus(currency, true);
+});
+
+bc.addEventListener('message', (e) => {
+  const {
+    TYPE: type,
+    FROMSYMBOL: currency,
+    PRICE: newPrice,
+    TOSYMBOL: unit,
+    MESSAGE: message,
+    PARAMETER: nameSubs,
+  } = JSON.parse(e.data);
+
+  checkingInvalidSubs(message, nameSubs);
+  if (type !== AGGREGATE_INDEX || newPrice === undefined) {
+    return;
+  }
+
+  addPricesList(unit, currency, newPrice);
+  updateBtcPrice(currency, newPrice);
+  recalculateTickers();
+  setStatus(currency, true);
+});
+
+function checkingInvalidSubs(message, nameSubs) {
+  if (message === INVALID_SUB) {
+    const currency = nameSubs
+      .split('~')
+      .filter((n, i) => i == 2)
+      .join('');
+
+    setStatus(currency, false);
+  }
+}
+
+function addPricesList(unit, currency, newPrice) {
+  if (unit === BTC_SYMBOL) {
+    prices.set(currency, newPrice);
+  }
+}
+
+function updateBtcPrice(currency, newPrice) {
+  if (currency === BTC_SYMBOL) {
+    BTC_PRICE = newPrice;
+  }
+}
 
 function recalculateTickers() {
   if (BTC_PRICE === 0) {
@@ -32,42 +102,6 @@ function recalculateTickers() {
   const btnHandlers = tickersHandlers.get(BTC_SYMBOL) ?? [];
   btnHandlers.forEach((fn) => fn(BTC_PRICE));
 }
-
-socket.addEventListener('message', (e) => {
-  const { MESSAGE: message, PARAMETER: nameSubs } = JSON.parse(e.data);
-
-  if (message === INVALID_SUB) {
-    const currency = nameSubs
-      .split('~')
-      .filter((n, i) => i == 2)
-      .join('');
-
-    setStatus(currency, false);
-  }
-});
-
-socket.addEventListener('message', (e) => {
-  // когда придут сообщения
-  const {
-    TYPE: type,
-    FROMSYMBOL: currency,
-    PRICE: newPrice,
-    TOSYMBOL: unit,
-  } = JSON.parse(e.data);
-
-  if (type !== AGGREGATE_INDEX || newPrice === undefined) {
-    return;
-  }
-
-  if (unit === BTC_SYMBOL) {
-    prices.set(currency, newPrice);
-  } else if (currency === BTC_SYMBOL) {
-    BTC_PRICE = newPrice;
-  }
-
-  recalculateTickers();
-  setStatus(currency, true);
-});
 
 function setStatus(currency, status) {
   const handlers = invalidSubsList.get(currency) ?? [];
