@@ -143,7 +143,8 @@
             v-for="(bar, idx) in normalizedGraph"
             :key="idx"
             :style="{ height: `${bar}%` }"
-            class="bg-purple-800 border w-10"
+            class="bg-purple-800 border w-20"
+            ref="graphStrip"
           ></div>
         </div>
         <button
@@ -200,7 +201,8 @@ export default {
       selectedTicker: null,
 
       graph: [],
-      maxGraphElements: 1,
+      maxGraphElements: 2,
+      widthGraphElement: 38,
       page: 1,
     };
   },
@@ -250,14 +252,6 @@ export default {
         this.coinlist.push(n);
       }
     });
-  },
-
-  mounted() {
-    window.addEventListener('resize', this.calculateMaxGraphElements);
-  },
-
-  beforeUnmount() {
-    window.removeEventListener('resize', this.calculateMaxGraphElements);
   },
 
   computed: {
@@ -317,11 +311,30 @@ export default {
   },
 
   methods: {
+    updateGraph(price) {
+      this.calculateWidthGraphElement();
+      this.calculateMaxGraphElements();
+      this.graph.push(price);
+      while (this.graph.length > this.maxGraphElements) {
+        this.graph.shift();
+      }
+    },
+
+    calculateWidthGraphElement() {
+      if (!this.$refs.graphStrip || this.$refs.graphStrip.length === 0) {
+        return;
+      }
+      const numStr = this.$refs.graphStrip[0].className.indexOf('w-');
+      const width = this.$refs.graphStrip[0].className.substr(numStr + 2, 2);
+      this.widthGraphElement = (width / 10) * 38;
+    },
+
     calculateMaxGraphElements() {
       if (!this.$refs.graph) {
         return;
       }
-      this.maxGraphElements = this.$refs.graph.clientWidth / 38;
+      this.maxGraphElements =
+        this.$refs.graph.clientWidth / this.widthGraphElement;
     },
 
     updateStatusTicker(tickerName, newStatus) {
@@ -337,10 +350,7 @@ export default {
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
           if (t === this.selectedTicker) {
-            this.graph.push(price);
-            while (this.graph.length > this.maxGraphElements) {
-              this.graph.shift();
-            }
+            this.updateGraph(price);
           }
           t.price = price;
         });
