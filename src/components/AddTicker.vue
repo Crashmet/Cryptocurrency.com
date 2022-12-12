@@ -36,7 +36,7 @@
         </div>
       </div>
     </div>
-    <add-button @click="add" type="button" class="my-4" />
+    <add-button @click-add-btn="add" type="button" class="my-4" />
   </section>
 </template>
 
@@ -50,6 +50,11 @@ export default {
 
   props: {
     tickers: Array,
+  },
+
+  // правила для добавления тикера(и других штук если написать), если ошибка, подсветится в консоли
+  emits: {
+    'add-ticker': (value) => typeof value === 'string' && value.length > 0,
   },
 
   data() {

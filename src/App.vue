@@ -104,7 +104,6 @@ export default {
 
   data() {
     return {
-      ticker: '',
       filter: '',
 
       tickers: [],
@@ -234,8 +233,6 @@ export default {
     },
 
     add(ticker) {
-      this.ticker = ticker;
-
       const currentTicker = {
         name: ticker.toUpperCase(),
         price: '-',
