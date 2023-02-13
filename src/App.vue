@@ -127,18 +127,10 @@ export default {
       }
     });
 
-    // if (windowData.filter) {
-    //   this.filter = windowData.filter;
-    // }
-
-    // if (windowData.page) {
-    //   this.page = windowData.page;
-    // }
     const tickersData = localStorage.getItem('cryptonomicon-list');
 
     if (tickersData) {
       this.tickers = JSON.parse(tickersData);
-      // для каждого тикера мы делаем функцию (58мин. 107мин)
       this.tickers.forEach((ticker) => {
         subscribeToTicker(ticker.name, (newPrice) =>
           this.updateTicker(ticker.name, newPrice)
@@ -190,8 +182,6 @@ export default {
     },
 
     pageStateOptions() {
-      // если меняется пайдж или фильтр, то функция начинает считать
-      // это наводит на мысль что нужно обновлять список ошибочных тикеров с помощью метода компьютер
       return {
         filter: this.filter,
         page: this.page,
@@ -286,8 +276,7 @@ export default {
       this.page = 1;
     },
 
-    pageStateOptions(value) {
-      // конец 16го видео
+    pageStateOptions(value) {  
       window.history.pushState(
         null,
         document.title,
