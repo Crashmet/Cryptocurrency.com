@@ -276,7 +276,7 @@ export default {
       this.page = 1;
     },
 
-    pageStateOptions(value) {  
+    pageStateOptions(value) {
       window.history.pushState(
         null,
         document.title,
